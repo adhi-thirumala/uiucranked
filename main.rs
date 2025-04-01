@@ -14,7 +14,7 @@ static JASMINE: &str = "67e218334abaefa8b4285dfb";
 async fn get_other_lists(
   client: &Client,
   whitelist: &HashSet<&str>,
-) -> Result<Vec<String>, Box<dyn std::error::Error>> {
+) -> Result<Vec<String>, Box<dyn std::error::Error + Send + Sync>> {
   let resp = client
     .get("https://www.uiucranked.com/api/getLeaderboard")
     .send()
@@ -34,7 +34,7 @@ async fn get_other_lists(
 }
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
   let whitelist: HashSet<&str> = [TARGET_ID, JASMINE].iter().copied().collect();
   let client = Client::builder().build()?;
 
@@ -75,9 +75,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     "sec-fetch-site",
     header::HeaderValue::from_static("same-origin"),
   );
-  headers.insert(header::USER_AGENT, header::HeaderValue::from_static(
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36"
-    ));
+  headers.insert(
+        header::USER_AGENT,
+        header::HeaderValue::from_static(
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
+        ),
+    );
 
   // Initialize shared state for other_ids using a Mutex.
   let initial_ids = get_other_lists(&client, &whitelist).await?;
@@ -157,7 +160,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
       if let Some(left_new_rating) = update_resp.get("leftNewRating") {
         println!("{:?}", left_new_rating);
       }
-      Ok::<(), Box<dyn std::error::Error>>(())
+      Ok::<(), Box<dyn std::error::Error + Send + Sync>>(())
     }));
   }
 
