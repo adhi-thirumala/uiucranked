@@ -85,11 +85,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
   // Initialize shared state for other_ids using a Mutex.
   let initial_ids = get_other_lists(&client, &whitelist).await?;
   let other_ids = Arc::new(Mutex::new(initial_ids));
-  const NUM_REQUESTS: u64 = 1000; // adjust as needed
+  const NUM_REQUESTS: u64 = 10; // adjust as needed
 
   let mut tasks = FuturesUnordered::new();
+  let mut i = 0;
 
-  for i in 0..NUM_REQUESTS {
+  loop {
     let client = client.clone();
     let headers = headers.clone();
     let other_ids = Arc::clone(&other_ids);
@@ -99,7 +100,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
       let ts = Utc::now().to_rfc3339_opts(SecondsFormat::Secs, true);
 
       // Refresh the list every 50 iterations.
-      if i % 50 == 0 {
+      if i % 500 == 0 {
         if let Ok(new_ids) = get_other_lists(&client, &whitelist).await {
           let mut ids = other_ids.lock().await;
           *ids = new_ids;
@@ -162,6 +163,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
       }
       Ok::<(), Box<dyn std::error::Error + Send + Sync>>(())
     }));
+    i += 1;
   }
 
   // Await all spawned tasks.
@@ -173,4 +175,3 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 
   Ok(())
 }
-
