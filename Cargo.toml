@@ -1,0 +1,16 @@
+[package]
+name = "uiucranked"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+reqwest = { version = "0.11", features = ["json", "blocking", "rustls-tls"] }
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+chrono = "0.4"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+
+[[bin]]
+name = "uiucranked"
+path = "main.rs"
